@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TP2 – Formulaire d'inscription</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #161920;
+      --card:      #1e2230;
+      --border:    #2c3148;
+      --accent:    #f0c96b;
+      --accent2:   #6b8ff0;
+      --text:      #e8eaf2;
+      --muted:     #7b82a0;
+      --error:     #f06b6b;
+      --success:   #6bf0b0;
+      --radius:    12px;
+      --transition: .2s ease;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 48px 16px 80px;
+    }
+
+    /* ── Noise overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Glow blob ── */
+    body::after {
+      content: '';
+      position: fixed; top: -200px; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 500px;
+      background: radial-gradient(ellipse, rgba(111,143,240,.12) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    .wrapper {
+      width: 100%; max-width: 720px;
+      position: relative; z-index: 1;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeDown .6s ease both;
+    }
+    .header .badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #1a1200;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 18px;
+    }
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      line-height: 1.1;
+      color: var(--text);
+    }
+    .header h1 span { color: var(--accent); }
+    .header p { color: var(--muted); margin-top: 10px; font-size: .95rem; }
+
+    /* ── Form card ── */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: clamp(24px, 5vw, 48px);
+      box-shadow: 0 24px 80px rgba(0,0,0,.5);
+    }
+
+    /* ── Fieldset ── */
+    fieldset {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 28px;
+      animation: fadeUp .5s ease both;
+    }
+    fieldset:nth-child(2) { animation-delay: .05s; }
+    fieldset:nth-child(3) { animation-delay: .10s; }
+    fieldset:nth-child(4) { animation-delay: .15s; }
+    fieldset:nth-child(5) { animation-delay: .20s; }
+    fieldset:nth-child(6) { animation-delay: .25s; }
+
+    legend {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--accent);
+      padding: 0 10px;
+      letter-spacing: .01em;
+    }
+
+    /* ── Grid ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 560px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ── Field ── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field + .field { margin-top: 0; }
+    .field-full { grid-column: 1 / -1; }
+
+    label {
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    label .req { color: var(--accent); margin-left: 2px; }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    input[type="password"],
+    input[type="file"],
+    select,
+    textarea {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .95rem;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      width: 100%;
+    }
+    input[type="date"] { color-scheme: dark; }
+    input[type="file"] {
+      padding: 8px 14px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    input[type="file"]::file-selector-button {
+      background: var(--border);
+      border: none;
+      border-radius: 6px;
+      color: var(--text);
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .82rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      padding: 5px 12px;
+      margin-right: 12px;
+      transition: background var(--transition);
+    }
+    input[type="file"]::file-selector-button:hover { background: var(--accent2); }
+
+    select option { background: var(--card); }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent2);
+      box-shadow: 0 0 0 3px rgba(107,143,240,.15);
+    }
+
+    /* ── Validation states ── */
+    input:not(:placeholder-shown):valid,
+    select:valid,
+    textarea:not(:placeholder-shown):valid {
+      border-color: rgba(107,240,176,.4);
+    }
+    input:not(:placeholder-shown):invalid,
+    select:invalid,
+    textarea:not(:placeholder-shown):invalid {
+      border-color: rgba(240,107,107,.4);
+    }
+
+    /* ── Error message ── */
+    .error-msg {
+      font-size: .78rem;
+      color: var(--error);
+      min-height: 16px;
+      display: none;
+    }
+    input:not(:placeholder-shown):invalid ~ .error-msg,
+    select:invalid ~ .error-msg,
+    textarea:not(:placeholder-shown):invalid ~ .error-msg {
+      display: block;
+    }
+
+    textarea { resize: vertical; min-height: 100px; }
+
+    /* ── Password wrapper ── */
+    .pwd-wrap { position: relative; }
+    .pwd-wrap input { padding-right: 46px; }
+    .pwd-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); padding: 4px;
+      display: flex; align-items: center; justify-content: center;
+      transition: color var(--transition);
+      line-height: 1;
+    }
+    .pwd-toggle:hover { color: var(--accent); }
+    .pwd-toggle svg { width: 18px; height: 18px; pointer-events: none; }
+
+    /* ── Radio / Checkbox groups ── */
+    .radio-group, .check-group {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      margin-top: 4px;
+    }
+
+    .radio-label, .check-label {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: .9rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      color: var(--text);
+      padding: 8px 14px;
+      transition: border-color var(--transition), background var(--transition);
+      user-select: none;
+    }
+    .radio-label:hover, .check-label:hover {
+      border-color: var(--accent2);
+      background: rgba(107,143,240,.08);
+    }
+    input[type="radio"]:checked + .radio-label,
+    input[type="checkbox"]:checked + .check-label {
+      border-color: var(--accent);
+      background: rgba(240,201,107,.08);
+      color: var(--accent);
+    }
+    input[type="radio"], input[type="checkbox"] { display: none; }
+
+    .radio-wrap, .check-wrap {
+      display: contents;
+    }
+
+    /* Visible checkmark/radio */
+    .radio-label::before {
+      content: '';
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--muted);
+      flex-shrink: 0;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    input[type="radio"]:checked + .radio-label::before {
+      border-color: var(--accent);
+      background: var(--accent);
+    }
+    .check-label::before {
+      content: '';
+      width: 14px; height: 14px;
+      border-radius: 4px;
+      border: 2px solid var(--muted);
+      flex-shrink: 0;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    input[type="checkbox"]:checked + .check-label::before {
+      border-color: var(--accent);
+      background: var(--accent);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 5.5l2.5 2.5L8 3' stroke='%231a1200' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-size: 10px;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    /* ── CGU checkbox (special) ── */
+    .cgu-wrap {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: border-color var(--transition);
+    }
+    .cgu-wrap:hover { border-color: var(--accent); }
+    .cgu-wrap input[type="checkbox"] {
+      display: block;
+      width: 18px; height: 18px;
+      min-width: 18px;
+      margin-top: 1px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .cgu-wrap span {
+      font-size: .88rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .cgu-wrap span a { color: var(--accent2); text-decoration: none; }
+    .cgu-wrap span a:hover { text-decoration: underline; }
+
+    /* ── Password strength ── */
+    #pwd-strength {
+      display: flex; gap: 4px; margin-top: 6px;
+    }
+    .bar {
+      height: 3px; flex: 1; border-radius: 2px;
+      background: var(--border);
+      transition: background .3s;
+    }
+    .bar.weak   { background: var(--error); }
+    .bar.medium { background: var(--accent); }
+    .bar.strong { background: var(--success); }
+
+    /* ── Submit ── */
+    .btn-submit {
+      width: 100%;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: #1a1200;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      padding: 16px;
+      margin-top: 8px;
+      transition: transform .15s, box-shadow .15s, background .15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-submit::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0);
+      transition: background .15s;
+    }
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(240,201,107,.35);
+    }
+    .btn-submit:hover::after { background: rgba(255,255,255,.08); }
+    .btn-submit:active { transform: translateY(0); }
+
+    /* ── Success toast ── */
+    #toast {
+      display: none;
+      position: fixed; bottom: 32px; left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      background: var(--success);
+      color: #021a0e;
+      font-weight: 700;
+      font-size: .95rem;
+      padding: 14px 28px;
+      border-radius: 40px;
+      box-shadow: 0 8px 32px rgba(107,240,176,.3);
+      z-index: 9999;
+      animation: none;
+    }
+    #toast.show {
+      display: block;
+      animation: toastIn .4s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* ── Char counter ── */
+    .char-counter { text-align: right; font-size: .75rem; color: var(--muted); }
+
+    /* ── Photo preview ── */
+    #photo-preview {
+      display: none;
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent);
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <!-- Header -->
+  <div class="header">
+    <h1>Formulaire <span>d'inscription</span></h1>
+    <p>Tous les champs marqués d'un astérisque sont obligatoires.</p>
+  </div>
+
+  <!-- Form -->
+  <div class="form-card">
+    <form id="register-form" novalidate autocomplete="on">
+
+      <!-- ── 1. Informations personnelles ── -->
+      <fieldset>
+        <legend>👤 Informations personnelles</legend>
+        <div class="grid-2" style="margin-top:16px;">
+
+          <div class="field">
+            <label for="nom">Nom <span class="req">*</span></label>
+            <input type="text" id="nom" name="nom"
+              placeholder=" "
+              required minlength="2" maxlength="50"
+              autocomplete="family-name" />
+            <span class="error-msg">Veuillez entrer votre nom (2 caractères min.).</span>
+          </div>
+
+          <div class="field">
+            <label for="prenom">Prénom <span class="req">*</span></label>
+            <input type="text" id="prenom" name="prenom"
+              placeholder=" "
+              required minlength="2" maxlength="50"
+              autocomplete="given-name" />
+            <span class="error-msg">Veuillez entrer votre prénom (2 caractères min.).</span>
+          </div>
+
+          <div class="field">
+            <label for="email">Email <span class="req">*</span></label>
+            <input type="email" id="email" name="email"
+              placeholder="marie.dupont@exemple.fr"
+              required
+              autocomplete="email" />
+            <span class="error-msg">Veuillez entrer une adresse email valide.</span>
+          </div>
+
+          <div class="field">
+            <label for="telephone">Téléphone <span class="req">*</span></label>
+            <input type="tel" id="telephone" name="telephone"
+              placeholder="06 12 34 56 78"
+              required
+              pattern="^(?:(?:\+|00)33|0)\s*[1-9](?:[\s.-]*\d{2}){4}$"
+              autocomplete="tel" />
+            <span class="error-msg">Format français requis (ex : 06 12 34 56 78).</span>
+          </div>
+
+          <div class="field">
+            <label for="datenaissance">Date de naissance <span class="req">*</span></label>
+            <input type="date" id="datenaissance" name="datenaissance"
+              required
+              autocomplete="bday" />
+            <span class="error-msg" id="age-error">Vous devez avoir au moins 18 ans.</span>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── 2. Sécurité ── -->
+      <fieldset>
+        <legend>🔒 Sécurité</legend>
+        <div class="grid-2" style="margin-top:16px;">
+
+          <div class="field">
+            <label for="mdp">Mot de passe <span class="req">*</span></label>
+            <div class="pwd-wrap">
+              <input type="password" id="mdp" name="mdp"
+                placeholder="••••••••"
+                required
+                pattern="^(?=.*[A-Z])(?=.*\d).{8,}$"
+                autocomplete="new-password" />
+              <button type="button" class="pwd-toggle" onclick="togglePwd('mdp', this)" aria-label="Afficher/masquer le mot de passe">
+                <svg id="eye-mdp" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+            <div id="pwd-strength">
+              <div class="bar" id="bar1"></div>
+              <div class="bar" id="bar2"></div>
+              <div class="bar" id="bar3"></div>
+            </div>
+            <span class="error-msg">8 caractères min., 1 majuscule et 1 chiffre requis.</span>
+          </div>
+
+          <div class="field">
+            <label for="mdp-confirm">Confirmer le mot de passe <span class="req">*</span></label>
+            <div class="pwd-wrap">
+              <input type="password" id="mdp-confirm" name="mdp-confirm"
+                placeholder="••••••••"
+                required
+                autocomplete="new-password" />
+              <button type="button" class="pwd-toggle" onclick="togglePwd('mdp-confirm', this)" aria-label="Afficher/masquer le mot de passe">
+                <svg id="eye-mdp-confirm" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </button>
+            </div>
+            <span class="error-msg" id="mdp-confirm-error">Les mots de passe ne correspondent pas.</span>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── 3. Profil ── -->
+      <fieldset>
+        <legend>🌍 Profil</legend>
+        <div class="grid-2" style="margin-top:16px;">
+
+          <div class="field">
+            <label for="pays">Pays <span class="req">*</span></label>
+            <input type="text" id="pays" name="pays"
+              list="pays-list"
+              placeholder="Sélectionnez un pays"
+              required
+              autocomplete="country-name" />
+            <datalist id="pays-list">
+              <option value="France"></option>
+              <option value="Maroc"></option>
+              <option value="Belgique"></option>
+              <option value="Suisse"></option>
+              <option value="Canada"></option>
+              <option value="Tunisie"></option>
+              <option value="Algérie"></option>
+              <option value="Sénégal"></option>
+              <option value="Côte d'Ivoire"></option>
+              <option value="Luxembourg"></option>
+            </datalist>
+            <span class="error-msg">Veuillez sélectionner un pays.</span>
+          </div>
+
+          <div class="field">
+            <label>Genre <span class="req">*</span></label>
+            <div class="radio-group" id="genre-group">
+              <input type="radio" name="genre" id="homme"   value="homme"   required />
+              <label class="radio-label" for="homme">Homme</label>
+
+              <input type="radio" name="genre" id="femme"   value="femme"   required />
+              <label class="radio-label" for="femme">Femme</label>
+
+              <input type="radio" name="genre" id="autre"   value="autre"   required />
+              <label class="radio-label" for="autre">Autre</label>
+            </div>
+            <span class="error-msg" id="genre-error">Veuillez choisir un genre.</span>
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── 4. Centres d'intérêt ── -->
+      <fieldset>
+        <legend>💡 Centres d'intérêt</legend>
+        <div style="margin-top:14px;">
+          <label style="display:block; margin-bottom:10px;">
+            Choisissez vos centres d'intérêt <span class="req">*</span>
+          </label>
+          <div class="check-group">
+            <input type="checkbox" id="tech"    name="interets" value="tech" />
+            <label class="check-label" for="tech">💻 Technologie</label>
+
+            <input type="checkbox" id="sport"   name="interets" value="sport" />
+            <label class="check-label" for="sport">⚽ Sport</label>
+
+            <input type="checkbox" id="musique" name="interets" value="musique" />
+            <label class="check-label" for="musique">🎵 Musique</label>
+
+            <input type="checkbox" id="voyage"  name="interets" value="voyage" />
+            <label class="check-label" for="voyage">✈️ Voyage</label>
+
+            <input type="checkbox" id="cuisine" name="interets" value="cuisine" />
+            <label class="check-label" for="cuisine">🍳 Cuisine</label>
+
+            <input type="checkbox" id="art"     name="interets" value="art" />
+            <label class="check-label" for="art">🎨 Art</label>
+
+            <input type="checkbox" id="lecture" name="interets" value="lecture" />
+            <label class="check-label" for="lecture">📚 Lecture</label>
+
+            <input type="checkbox" id="cinema"  name="interets" value="cinema" />
+            <label class="check-label" for="cinema">🎬 Cinéma</label>
+
+            <input type="checkbox" id="autre-interet" name="interets" value="autre" />
+            <label class="check-label" for="autre-interet">✨ Autre</label>
+          </div>
+          <div id="autre-interet-block" style="display:none; margin-top:12px;">
+            <label for="autre-interet-texte">Précisez votre centre d'intérêt <span class="req">*</span></label>
+            <input type="text" id="autre-interet-texte" name="autre-interet-texte" placeholder="Ex : Jardinage" />
+            <span class="error-msg" id="autre-interet-error">Veuillez préciser votre centre d'intérêt.</span>
+          </div>
+          <span class="error-msg" id="interets-error">Veuillez sélectionner au moins un centre d'intérêt.</span>
+        </div>
+      </fieldset>
+
+      <!-- ── 5. À propos ── -->
+      <fieldset>
+        <legend>📝 À propos de vous</legend>
+        <div style="margin-top:16px; display:flex; flex-direction:column; gap:16px;">
+
+          <div class="field">
+            <label for="bio">Biographie <span class="req">*</span></label>
+            <textarea id="bio" name="bio"
+              placeholder="Parlez-nous de vous en quelques mots…"
+              required
+              minlength="20"
+              maxlength="500"
+              autocomplete="off"></textarea>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span class="error-msg" style="display:block;">20 caractères minimum requis.</span>
+              <span class="char-counter"><span id="bio-count">0</span> / 500</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="photo">Photo de profil</label>
+            <input type="file" id="photo" name="photo"
+              accept="image/*"
+              autocomplete="off" />
+            <img id="photo-preview" src="" alt="Aperçu de la photo" />
+          </div>
+
+        </div>
+      </fieldset>
+
+      <!-- ── 6. CGU ── -->
+      <fieldset>
+        <legend>⚖️ Conditions d'utilisation</legend>
+        <div style="margin-top:14px;">
+          <label class="cgu-wrap" for="cgu">
+            <input type="checkbox" id="cgu" name="cgu" required />
+            <span>
+              J'accepte les <a href="#" onclick="return false;">conditions générales d'utilisation</a>
+              et la <a href="#" onclick="return false;">politique de confidentialité</a>.
+              Je confirme avoir au moins 18 ans et consens au traitement de mes données personnelles.
+            </span>
+          </label>
+          <span class="error-msg" id="cgu-error" style="display:none; margin-top:8px;">
+            Vous devez accepter les CGU pour continuer.
+          </span>
+        </div>
+      </fieldset>
+
+      <button type="submit" class="btn-submit">Créer mon compte →</button>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast">✅ Inscription réussie ! Bienvenue 🎉</div>
+
+<script>
+  /* ── Show/hide password ── */
+  const EYE_OPEN  = `<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+  const EYE_SLASH = `<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.59-4.21M6.53 6.53A9.97 9.97 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.97 9.97 0 01-4.01 5.21M3 3l18 18"/>`;
+
+  function togglePwd(id, btn) {
+    const input = document.getElementById(id);
+    const svg   = btn.querySelector('svg');
+    const isHidden = input.type === 'password';
+    input.type  = isHidden ? 'text' : 'password';
+    svg.innerHTML = isHidden ? EYE_SLASH : EYE_OPEN;
+    btn.style.color = isHidden ? 'var(--accent)' : '';
+  }
+
+  /* ── Password strength ── */
+  const mdp = document.getElementById('mdp');
+  const bars = [document.getElementById('bar1'), document.getElementById('bar2'), document.getElementById('bar3')];
+
+  mdp.addEventListener('input', () => {
+    const v = mdp.value;
+    let score = 0;
+    if (v.length >= 8)          score++;
+    if (/[A-Z]/.test(v))        score++;
+    if (/\d/.test(v))           score++;
+
+    bars.forEach((b, i) => { b.className = 'bar'; });
+
+    if (score === 1) { bars[0].classList.add('weak'); }
+    else if (score === 2) { bars[0].classList.add('medium'); bars[1].classList.add('medium'); }
+    else if (score === 3) { bars.forEach(b => b.classList.add('strong')); }
+  });
+
+  /* ── Confirm password ── */
+  const mdpConfirm = document.getElementById('mdp-confirm');
+  mdpConfirm.addEventListener('input', () => {
+    if (mdpConfirm.value !== mdp.value) {
+      mdpConfirm.setCustomValidity('Les mots de passe ne correspondent pas.');
+      document.getElementById('mdp-confirm-error').style.display = 'block';
+    } else {
+      mdpConfirm.setCustomValidity('');
+      document.getElementById('mdp-confirm-error').style.display = 'none';
+    }
+  });
+
+  /* ── Age ≥ 18 ── */
+  const dateInput = document.getElementById('datenaissance');
+  dateInput.addEventListener('change', validateAge);
+
+  function validateAge() {
+    const val = dateInput.value;
+    if (!val) return;
+    const birth = new Date(val);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+
+    if (age < 18) {
+      dateInput.setCustomValidity('Vous devez avoir au moins 18 ans.');
+      document.getElementById('age-error').style.display = 'block';
+    } else {
+      dateInput.setCustomValidity('');
+      document.getElementById('age-error').style.display = 'none';
+    }
+  }
+
+  /* ── Bio char counter ── */
+  const bio = document.getElementById('bio');
+  const bioCount = document.getElementById('bio-count');
+  bio.addEventListener('input', () => {
+    bioCount.textContent = bio.value.length;
+  });
+
+  /* ── Photo preview ── */
+  const photoInput = document.getElementById('photo');
+  const preview = document.getElementById('photo-preview');
+  photoInput.addEventListener('change', () => {
+    const file = photoInput.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  /* ── Autre centre d'intérêt (conditionnel) ── */
+  const autreCheckbox = document.getElementById('autre-interet');
+  const autreBlock = document.getElementById('autre-interet-block');
+  const autreInput = document.getElementById('autre-interet-texte');
+  const autreError = document.getElementById('autre-interet-error');
+
+  function toggleAutreInteret() {
+    if (autreCheckbox.checked) {
+      autreBlock.style.display = 'block';
+      autreInput.required = true;
+    } else {
+      autreBlock.style.display = 'none';
+      autreInput.required = false;
+      autreInput.value = '';
+      autreError.style.display = 'none';
+      autreInput.setCustomValidity('');
+    }
+  }
+
+  autreCheckbox.addEventListener('change', toggleAutreInteret);
+
+  autreInput.addEventListener('input', () => {
+    if (autreInput.value.trim().length > 0) {
+      autreError.style.display = 'none';
+      autreInput.setCustomValidity('');
+    }
+  });
+
+  /* ── Submit ── */
+  document.getElementById('register-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    let valid = true;
+
+    /* Age */
+    validateAge();
+
+    /* Genre */
+    const genreChecked = document.querySelector('input[name="genre"]:checked');
+    if (!genreChecked) {
+      document.getElementById('genre-error').style.display = 'block';
+      valid = false;
+    } else {
+      document.getElementById('genre-error').style.display = 'none';
+    }
+
+    /* Intérêts */
+    const interets = document.querySelectorAll('input[name="interets"]:checked');
+    if (interets.length === 0) {
+      document.getElementById('interets-error').style.display = 'block';
+      valid = false;
+    } else {
+      document.getElementById('interets-error').style.display = 'none';
+    }
+
+    /* Autre intérêt texte */
+    if (autreCheckbox.checked && !autreInput.value.trim()) {
+      autreError.style.display = 'block';
+      autreInput.setCustomValidity("Veuillez préciser votre centre d'intérêt.");
+      valid = false;
+    } else {
+      autreError.style.display = 'none';
+      autreInput.setCustomValidity('');
+    }
+
+    /* CGU */
+    const cgu = document.getElementById('cgu');
+    if (!cgu.checked) {
+      document.getElementById('cgu-error').style.display = 'block';
+      valid = false;
+    } else {
+      document.getElementById('cgu-error').style.display = 'none';
+    }
+
+    /* Native HTML5 validation */
+    if (!this.checkValidity()) {
+      this.reportValidity();
+      valid = false;
+    }
+
+    if (valid && this.checkValidity()) {
+      const toast = document.getElementById('toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+  });
+</script>
+</body>
+</html>
